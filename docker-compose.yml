@@ -79,7 +79,12 @@ services:
     ports:
       - "3000:3000"
     environment:
-      NEXT_PUBLIC_API_URL: http://localhost:3001
+      - NEXT_PUBLIC_API_URL=http://localhost:3001
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
+    volumes:
+      - ./frontend/web:/usr/src/app
+      - /usr/src/app/node_modules
     depends_on:
       - api
 

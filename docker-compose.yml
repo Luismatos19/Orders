@@ -1,4 +1,5 @@
 version: "3.8"
+
 services:
   zookeeper:
     image: confluentinc/cp-zookeeper:7.4.1
@@ -14,13 +15,19 @@ services:
       - zookeeper
     ports:
       - "9092:9092"
+      - "9093:9093"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:9093
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: ["CMD", "bash", "-c", "nc -z localhost 9092 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   postgres:
     image: postgres:14
@@ -39,39 +46,40 @@ services:
     ports:
       - "3001:3001"
     environment:
-      - DATABASE_HOST=postgres
-      - DATABASE_PORT=5432
-      - DATABASE_USER=postgres
-      - DATABASE_PASS=postgres
-      - DATABASE_NAME=orders
-      - KAFKA_BROKERS=kafka:9092
-      - KAFKA_TOPIC=orders
+      DATABASE_HOST: ${DATABASE_HOST:-postgres}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_USER: ${DATABASE_USER:-postgres}
+      DATABASE_PASS: ${DATABASE_PASS:-postgres}
+      DATABASE_NAME: ${DATABASE_NAME:-orders}
+      KAFKA_BROKERS: ${KAFKA_BROKERS:-kafka:9092}
+      KAFKA_TOPIC: ${KAFKA_TOPIC:-orders}
     depends_on:
-      - postgres
-      - kafka
+      kafka:
+        condition: service_healthy
+    restart: unless-stopped
 
   worker:
     build: ./backend/worker
     working_dir: /usr/src/app
     environment:
-      - DATABASE_HOST=postgres
-      - DATABASE_PORT=5432
-      - DATABASE_USER=postgres
-      - DATABASE_PASS=postgres
-      - DATABASE_NAME=orders
-      - KAFKA_BROKERS=kafka:9092
-      - KAFKA_TOPIC=orders
+      DATABASE_HOST: ${DATABASE_HOST:-postgres}
+      DATABASE_PORT: ${DATABASE_PORT:-5432}
+      DATABASE_USER: ${DATABASE_USER:-postgres}
+      DATABASE_PASS: ${DATABASE_PASS:-postgres}
+      DATABASE_NAME: ${DATABASE_NAME:-orders}
+      KAFKA_BROKERS: ${KAFKA_BROKERS:-kafka:9092}
+      KAFKA_TOPIC: ${KAFKA_TOPIC:-orders}
     depends_on:
-      - postgres
-      - kafka
-    # opcional: reiniciar: always
+      kafka:
+        condition: service_healthy
+    restart: unless-stopped
 
   frontend:
     build: ./frontend/web
     ports:
       - "3000:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:3001
+      NEXT_PUBLIC_API_URL: http://localhost:3001
     depends_on:
       - api
 

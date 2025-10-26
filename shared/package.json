@@ -1,0 +1,9 @@
+{
+  "name": "shared",
+  "version": "1.0.0",
+  "main": "index.js",
+  "dependencies": {
+    "typeorm": "^0.3.27",
+    "reflect-metadata": "^0.2.2"
+  }
+}

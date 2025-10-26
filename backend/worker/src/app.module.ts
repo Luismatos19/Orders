@@ -1,9 +1,9 @@
 import { Module } from '@nestjs/common';
+import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { OrdersModule } from './orders/orders.module';
-import { HealthModule } from './health/health.module';
+import { KafkaConsumerService } from './services/kafka.consumer';
+import { Order } from './entities/order.entity';
 
 @Module({
   imports: [
@@ -14,13 +14,12 @@ import { HealthModule } from './health/health.module';
       username: process.env.DATABASE_USER || 'postgres',
       password: process.env.DATABASE_PASS || 'postgres',
       database: process.env.DATABASE_NAME || 'orders',
-      autoLoadEntities: true,
+      entities: [Order],
       synchronize: true,
     }),
-    OrdersModule,
-    HealthModule,
+    TypeOrmModule.forFeature([Order]),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [AppService, KafkaConsumerService],
 })
 export class AppModule {}

@@ -1,0 +1,28 @@
+# Este arquivo pode ser copiado para docker-compose.override.yml
+# para personalizar as configurações de ambiente
+
+version: "3.8"
+services:
+  api:
+    environment:
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_USER=postgres
+      - DATABASE_PASS=postgres
+      - DATABASE_NAME=orders
+      - KAFKA_BROKERS=kafka:9092
+      - KAFKA_TOPIC=orders
+
+  worker:
+    environment:
+      - DATABASE_HOST=postgres
+      - DATABASE_PORT=5432
+      - DATABASE_USER=postgres
+      - DATABASE_PASS=postgres
+      - DATABASE_NAME=orders
+      - KAFKA_BROKERS=kafka:9092
+      - KAFKA_TOPIC=orders
+
+  frontend:
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:3001
